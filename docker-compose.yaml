@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  web:
+    build: . 
+    container_name: new-express-app
+    depends_on:
+      - db
+    ports:
+      - "30100:30100"
+    volumes:
+      - .:/usr/app
+      - /usr/app/node_modules
+
+    environment:
+      DB_HOST: db
+      DB_DATABASE: expressdb
+      DB_USERNAME: express
+      DB_PASSWORD: 123456789
+
+    networks:
+      - backend
+  db:
+    image: postgres:12.5
+    container_name: express-db
+    
+    env_file: env/local/db.env
+    environment:
+      PORT: 5432
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes_from:
+      - dbdata
+    ports:
+      - "31007:5432"
+    networks:
+      - backend
+  dbdata:
+    image: tianon/true
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
+networks:
+  backend:
+    name: backend
+    driver: bridge

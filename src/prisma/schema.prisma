@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+enum WeaponSize{
+  SMALL
+  MID
+  BIG
+}
+
+
+model WeaponType {
+  
+  id  String @id @default(uuid())
+  name String
+  size WeaponSize @default(SMALL)
+  isRangedWeapon Boolean @map("is_ranged_weapon")
+  weapons Weapon[]
+
+
+  @@map("weapon_types")
+}
+
+
+model Weapon{
+  id String @id @default(uuid())
+  name String 
+  description String
+  price Float
+  attack Int @default(1)
+  isOneHand Boolean @default(false) @map("is_one_hand")
+  
+  //Weapon type relation
+  weaponType WeaponType @relation(fields: [weaponTypeId], references:[id])
+  weaponTypeId String @map("weapon_type_id")
+
+
+  @@map("weapons")
+}
+
+model User {
+  id String @id @default(uuid())
+  email String @unique
+  firstName String @map("first_name")
+  lastName String @map("last_name")
+  username String
+  password String
+  @@map("users")
+}
+
+
+
+
+
+
+
+
+
