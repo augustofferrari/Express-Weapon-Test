@@ -12,8 +12,6 @@ const checkWeaponTypeExists = (value: string, helper: any) => {
   let weaponObject = null;
   weaponType.then(
     (weaponObject = (result: any) => {
-      console.log("RESULT");
-      console.log(result);
       return result;
     })
   );
@@ -21,7 +19,7 @@ const checkWeaponTypeExists = (value: string, helper: any) => {
   console.log(weaponObject);
 
   if (weaponObject == null) {
-    return helper.message("The weapon type does not exist");
+    return helper.error("The weapon type does not exist");
   } else {
     return value;
   }

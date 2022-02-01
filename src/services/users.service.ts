@@ -1,7 +1,8 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { AuthenticationError } from "../errors/authentication.errors";
 import { UserLoginSchema } from "../schema/user.schema";
-import { generateAccessToken } from "../utils/jtwTokens";
+import { GenerateAccessToken } from "../utils/jtwTokens";
 
 const prisma = new PrismaClient();
 
@@ -15,6 +16,23 @@ function AddPrismaMiddleware(prisma: any) {
       user.password = hash;
     }
     return next(params);
+  });
+}
+
+export async function GetAuthTokenByUserId(userId: string) {
+  const prisma = new PrismaClient();
+  return await prisma.authToken.findUnique({ where: { userId: userId } });
+}
+
+export async function GetAuthTokenByToken(token: string) {
+  const prisma = new PrismaClient();
+  return await prisma.authToken.findUnique({ where: { token: token } });
+}
+
+export async function GetRoleByUserAndRole(userId: string, roleName: string) {
+  const prisma = new PrismaClient();
+  return await prisma.userRoles.findMany({
+    where: { userId: userId, role: { is: { name: roleName } } },
   });
 }
 
@@ -33,18 +51,15 @@ export async function LoginUserService(payload: any) {
       email: payload.email,
     },
   });
-
+  if (user === null) {
+    throw new AuthenticationError("Invalid username or password");
+  }
   //compare the two passwords with bcypt moduel
-  const passwordResult = bcrypt.compare(payload.password, user.password);
+  const passwordResult = await bcrypt.compare(payload.password, user.password);
   if (passwordResult) {
-    const token = generateAccessToken(payload.email);
-    console.log(token);
-    return "token";
+    const token = await GenerateAccessToken(user.id);
+    return token;
   } else {
-    return "error";
+    throw new AuthenticationError("Invalid username or password");
   }
 }
-
-//export async function GenerateAccessToken(username: string) {
-//  return jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: "1800s" });
-//}

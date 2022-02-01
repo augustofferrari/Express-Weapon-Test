@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { GetAllWeapons, GetWeaponTypes } from "../controller/weapon.controller";
 import { BaseCreationClass } from "../controller/basecontroller.controller";
-import { JwtAuthentication } from "../middleware/authenticationMiddleware";
+import {
+  JwtAuthentication,
+  UserHasPermission,
+} from "../middleware/authenticationMiddleware";
 import { createWeaponSchema } from "../schema/weapon.schema";
 import { createWeaponTypeSchema } from "../schema/weaponType.schema";
 
@@ -10,7 +13,7 @@ const weaponRouter = new Router();
 //Add authentication middleware
 weaponRouter.use(JwtAuthentication);
 
-weaponRouter.get("", GetAllWeapons);
+weaponRouter.get("", UserHasPermission("Player"), GetAllWeapons);
 weaponRouter.post("", (req: Request, res: Response) =>
   new BaseCreationClass(
     req,

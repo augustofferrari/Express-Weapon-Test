@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import Joi from "joi";
+import { ValidationError } from "joi";
 
 export class BaseCreationClass {
   req: Request;
@@ -25,8 +26,8 @@ export class BaseCreationClass {
 
   async post() {
     try {
-      const { error, value } = this.schema.validate(this.req.body);
-      if (error == undefined) {
+      const { error, value } = await this.schema.validateAsync(this.req.body);
+      if (error === undefined) {
         const prisma = new PrismaClient();
         const object = await prisma[this.model].create({ data: this.req.body });
         return this.res.status(200).send(this.responseMessage);
@@ -35,10 +36,14 @@ export class BaseCreationClass {
         return this.res.status(400).send(error.details);
       }
     } catch (e: any) {
-      console.log("Error 500");
-      console.log(e);
-
-      return this.res.status(500).send(e.errors);
+      console.log(typeof e);
+      console.log("ERROR CAPTURADO");
+      if (e instanceof ValidationError) {
+        console.log("ERROR", e);
+        return this.res.status(400).send(e.details.message);
+      } else {
+        return this.res.status(500).send(e.errors);
+      }
     }
   }
 }
