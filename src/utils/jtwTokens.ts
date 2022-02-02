@@ -3,19 +3,20 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 import { GetAuthTokenByUserId } from "../services/users.service";
 
-export function ValidateBearerToken(token: string) {}
+function _GetExpirationDate() {
+  let expirationDate = new Date();
+  const expirationSeconds = process.env.TOKEN_EXPIRATION_TIME;
+  expirationDate.setSeconds(expirationDate.getSeconds() + expirationSeconds);
+  return expirationDate;
+}
 
-export function CheckValidToken(creationDate: Date): boolean {
+export function CheckValidToken(expirationDate: Date): boolean {
   /**
    * Receives the token creation time and verify if is still
    * available or not
    */
   const currentTime = new Date();
-  const timeDifference = Math.abs(
-    currentTime.getTime() - creationDate.getTime()
-  );
-  if (timeDifference >= process.env.TOKEN_EXPIRATION_TIME) {
-    //token expired
+  if (expirationDate < currentTime) {
     return false;
   }
   return true;
@@ -43,17 +44,27 @@ export async function GenerateAccessToken(userId: string): Promise<string> {
   if (authToken === null) {
     //User without token, create new one
     const token = _NewAccessToken(userId);
-    const data = { token: token, userId: userId };
+    const expirationDate = _GetExpirationDate();
+    const data = {
+      token: token,
+      userId: userId,
+      expirationDate: expirationDate,
+    };
     await prisma.authToken.create({ data: data });
     return token;
   } else {
     // check if the token is expired
-    const tokenAvailable = CheckValidToken(authToken.created);
+    const tokenAvailable = CheckValidToken(authToken.expirationDate);
     if (tokenAvailable) {
       return authToken.token;
     } else {
       const token = _NewAccessToken(userId);
-      const data = { token: token, created: new Date() };
+      const expirationDate = _GetExpirationDate();
+      const data = {
+        token: token,
+        created: new Date(),
+        expirationDate: expirationDate,
+      };
       await prisma.authToken.update({ where: { userId: userId }, data: data });
       return token;
     }

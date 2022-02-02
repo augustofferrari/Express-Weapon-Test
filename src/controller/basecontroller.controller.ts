@@ -36,10 +36,7 @@ export class BaseCreationClass {
         return this.res.status(400).send(error.details);
       }
     } catch (e: any) {
-      console.log(typeof e);
-      console.log("ERROR CAPTURADO");
       if (e instanceof ValidationError) {
-        console.log("ERROR", e);
         return this.res.status(400).send(e.details.message);
       } else {
         return this.res.status(500).send(e.errors);

@@ -1,5 +1,9 @@
 class RoleService {
   constructor() {}
 
-  createRole(roleName: string) {}
+  async createRole(roleName: string) {
+    //Check 
+
+
+  }
 }

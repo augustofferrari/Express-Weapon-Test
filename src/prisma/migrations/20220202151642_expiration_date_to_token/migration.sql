@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "auth_token" ADD COLUMN     "expiration_time" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
